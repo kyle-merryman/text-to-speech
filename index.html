@@ -12,7 +12,8 @@
     <div class="voiceinator">
 
       <h1>The Voiceinator 5000</h1>
-
+      <div id="google_translate_element"></div>
+    <!--names rate', 'pitch', 'text' line up with their property-->
       <select name="voice" id="voices">
         <option value="">Select A Voice</option>
       </select>
@@ -30,13 +31,65 @@
     </div>
 
 <script>
-  const msg = new SpeechSynthesisUtterance();
-  let voices = [];
-  const voicesDropdown = document.querySelector('[name="voice"]');
-  const options = document.querySelectorAll('[type="range"], [name="text"]');
-  const speakButton = document.querySelector('#speak');
-  const stopButton = document.querySelector('#stop');
+    //what the person is going to say, everything below SSU is entered into it
+    const msg = new SpeechSynthesisUtterance();
+    //array holding voices
+    let voices = [];
+    const voicesDropdown = document.querySelector('[name="voice"]');
+    const options = document.querySelectorAll('[type="range"], [name="text"]');
+    //speak btn
+    const speakButton = document.querySelector('#speak');
+    //stop btn
+    const stopButton = document.querySelector('#stop');
+    //sets the SSU's text == textbox content - VERY IMPORTANT
+    msg.text = document.querySelector('[name="text"]').value;
+
+    function populateVoices() {
+        voices = this.getVoices();
+        console.log(voices);
+        voicesDropdown.innerHTML = voices 
+            //only includes english voices by selecting only voice property lang which includes string "en"
+            .filter(voice => voice.lang.includes('en'))
+            //displays name (language), and sets the value = voice name
+            .map(voice => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
+            .join('');
+    }
+
+    function setVoice() {
+        //finds the voice where voice.name = the option value selected
+        msg.voice = voices.find(voice => voice.name === this.value);
+        console.log(`voice has changed to ${this.value}`);
+        toggle();
+    }
+
+    function setOption() {
+        console.log(this.name, this.value);
+        msg[this.name] = this.value;
+    }
+
+    function toggle(startOver = true) {
+        speechSynthesis.cancel();
+        if (startOver){
+            speechSynthesis.speak(msg);
+        }
+    }
+
+    //can't run on page load, so adds event listener first
+    speechSynthesis.addEventListener('voiceschanged', populateVoices);
+    voicesDropdown.addEventListener('change', setVoice);
+    options.forEach(option => option.addEventListener('change', setOption));
+    speakButton.addEventListener('click', toggle);
+    stopButton.addEventListener('click', () => toggle(false));
+
 </script>
+
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+    }
+    </script>
+    
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>
